@@ -1,4 +1,5 @@
 import random
+import math
 import itertools
 import numpy         as np 
 import pandas        as pd
@@ -74,6 +75,35 @@ class Chromosome():
                         if k != not_to_change:
                             self.genes.iloc[i,k] = -1
 
+    def get_entropy(self, class_name):
+        # if all units of a course is sheduled in the same day then return 1
+        # else return 0
+        u_per_day_mat = pd.DataFrame(np.zeros((len(self.cols), len(self.days)), dtype=np.uint8),index=self.genes.columns, columns=self.days)
+
+        # filling the vector
+        for day in self.days:
+            sum_of_1 = 0
+            for hour in self.hours:
+                for row in u_per_day_mat.index:
+                    (course,_,_,_) = row
+                    if self.genes.loc[(class_name, day, hour), row] == 1:
+                        u_per_day_mat.loc[row, day] += 1
+        
+        # calculation the entropy
+        all_entropies = 0
+        for row in u_per_day_mat.index:
+            entropy = 0
+            sum_row = u_per_day_mat.loc[row,:].sum()
+            for c in u_per_day_mat.columns:
+                try:
+                    entropy += -((u_per_day_mat.loc[row, c]/sum_row) * math.log((u_per_day_mat.loc[row, c]/sum_row), 2))
+                except:
+                    pass
+            all_entropies  += entropy
+        
+        # returning the entropy of the matrix
+        return all_entropies/len(u_per_day_mat.index)
+
     def get_fitness(self):
         # the closet to 1, the better
         scheduled = 0
@@ -87,7 +117,16 @@ class Chromosome():
         for (_,_,_,u) in self.cols:
             all_units += u
 
-        return scheduled/(len(self.classes)*all_units)
+        basic_fitness = scheduled/(len(self.classes)*all_units)
+          
+        if basic_fitness == 1 or 10:
+            advanced_fitness = 1
+            l = len(self.classes)
+            for clss in self.classes:
+                advanced_fitness -= self.get_entropy(clss)/l
+            return advanced_fitness
+
+        return basic_fitness
 
     def get_time_table(self, class_name):
         cols = self.days
