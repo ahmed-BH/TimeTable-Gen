@@ -1,12 +1,14 @@
 from core.chromosome import Chromosome
+import core.settings as settings
 
 class Population:
     '''Population Init'''
     def __init__(self, size):
         self.chromosomes = []
+
         i = 0
         while i < size :
-            chromosome = Chromosome()
+            chromosome = Chromosome(raw_data=settings.RAW_DATA)
             chromosome.fill_genes()
             self.chromosomes.append(chromosome)
             i += 1

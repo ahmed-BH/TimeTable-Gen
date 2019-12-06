@@ -24,8 +24,8 @@ class GeneticAlgorithm:
     @staticmethod
     def crossover_chromosomes(parent1, parent2):
         if random.random() < settings.CROSSING_RATE: 
-            child1 = Chromosome()
-            child2 = Chromosome()
+            child1 = Chromosome(raw_data=settings.RAW_DATA)
+            child2 = Chromosome(raw_data=settings.RAW_DATA)
 
             '''One Point Cross Over with correction'''
             crossover_index = random.randrange(1, child1.get_nb_genes())

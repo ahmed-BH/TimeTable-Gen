@@ -1,28 +1,27 @@
 import random
 import itertools
-import numpy  as np 
-import pandas as pd
+import numpy         as np 
+import pandas        as pd
+
 
 class Chromosome():
     def __init__(self, **kargs):
-        self.classes = ["c1", "c2"]     # kargs.get("classes", None)
-        self.days    = ["d1", "d2", "d3", "d4", "d5"]     # kargs.get("days", None)
-        self.hours   = ["h1","h2","h3", "h4", "h5"] # kargs.get("hours", None)
-        # type verification
-        # insert it here..
-        # generate row_indexes for our dataframe, its purpose is for debuging and verifications
-        index_rows = list(itertools.product(self.classes, self.days, self.hours))
+        data          = kargs.get("raw_data", None)
+        assert data  != None, "'raw_data' must be specified"
 
-        # column <course, room_type, lecturer, units>
-        self.cols  = [("eng","A","l0",1),("fr","A","l1",1),("ia","A","l2",2),("ga","A","l3",1),("idx","A","l4",1),("tp_ga","TP","l5",2)] # kargs.get("course_room_lecturer_units", None)
-        # type verification
-        # insert it here..
+        self.classes  = data["classes"]
+        self.days     = data["days"] 
+        self.hours    = data["hours"] 
+        self.cols     = data["course_mapping"] 
         
-        # chromosome is a list that determines the order we fill self.data
+        # generate row_indexes for our dataframe, its purpose is for debuging and verifications
+        index_rows = list(itertools.product(self.classes, self.days, self.hours))        
+        
+        # chromosome is a list that determines the order we fill self.genes(our dataframe)
         self.chromosome = [i for i in range(len(self.cols))]
         random.shuffle(self.chromosome)
         
-        # data is a matrix that contains all timetables 
+        # genes is a dataframe that contains timetable for all classes
         shape = (len(self.classes)*len(self.days)*len(self.hours), len(self.cols))
         self.genes = pd.DataFrame(np.zeros(shape),index=pd.MultiIndex.from_tuples(index_rows), columns=pd.MultiIndex.from_tuples(self.cols), dtype = np.int8)
 
@@ -55,7 +54,6 @@ class Chromosome():
                         for clss2 in self.classes:
                             if clss != clss2:
                                 self.genes.loc[(clss2, random_day, random_hour), (course, type_room, lecturer, units)] = -1
-
 
             # rule 3: For each row, there is only maximum a cell that is equal to 1.The others must be -1 or 0.
             (nb_rows, nb_cols) = self.genes.shape
