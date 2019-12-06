@@ -34,5 +34,5 @@ Contributions are what make the open source community such an amazing place to b
 
 ## References
 
-* Samuel Lukas, Arnold Aribowo and Milyandreana Muchri (2012). Solving Timetable Problem by GeneticAlgorithm and Heuristic Search Case Study: Universitas Pelita Harapan Timetable, Real-World Applications ofGenetic Algorithms, Dr. Olympia Roeva (Ed.), ISBN: 978-953-51-0146-8, InTech, Available from:[this link](http://www.intechopen.com/books/real-world-applications-of-genetic-algorithms/solving-timetable-problem-by-genetic-algorithm-and-heuristic-search-case-study-universitas-pelita-ha)
-* [Genetic Algorithms](https://rayenmhamdi.github.io/ai/ga/)
+* Samuel Lukas, Arnold Aribowo and Milyandreana Muchri (2012). Solving Timetable Problem by GeneticAlgorithm and Heuristic Search Case Study: Universitas Pelita Harapan Timetable, Real-World Applications ofGenetic Algorithms, Dr. Olympia Roeva (Ed.), ISBN: 978-953-51-0146-8, InTech, Available from: [this link](http://www.intechopen.com/books/real-world-applications-of-genetic-algorithms/solving-timetable-problem-by-genetic-algorithm-and-heuristic-search-case-study-universitas-pelita-ha)
+* [Genetic Algorithms explaination by Rayen MHAMDI](https://rayenmhamdi.github.io/ai/ga/)
