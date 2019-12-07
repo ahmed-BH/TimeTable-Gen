@@ -77,6 +77,8 @@ class GeneticAlgorithm:
             chromosome.chromosome[random_position1] = chromosome.chromosome[random_position2]
             chromosome.chromosome[random_position2] = gene
 
+            chromosome.init_genes()
+            chromosome.fill_genes()
             print("To:   ",chromosome.get_chromosome())
     
 
@@ -84,7 +86,7 @@ class GeneticAlgorithm:
     @staticmethod
     def evolve(pop):
         new_pop = Population(0)
-        '''Keep The Fittests Chromosomes'''
+        '''Keep The Fittest Chromosomes'''
         for i in range(settings.NUMBER_OF_ELITE_CHROMOSOMES):
             new_pop.get_chromosomes().append(pop.get_chromosomes()[i])
 
