@@ -92,13 +92,23 @@ class Chromosome():
         # calculation the entropy
         all_entropies = 0
         for row in u_per_day_mat.index:
+            (course,_,_,units) = row
+            # no need to calculate entropy for one unit course
+            # we know it's 0 
+            if units == 1:
+                continue
             entropy = 0
             sum_row = u_per_day_mat.loc[row,:].sum()
+            if sum_row == 0: continue
             for c in u_per_day_mat.columns:
                 try:
-                    entropy += -((u_per_day_mat.loc[row, c]/sum_row) * math.log((u_per_day_mat.loc[row, c]/sum_row), 2))
-                except:
-                    pass
+                    if u_per_day_mat.loc[row, c] != 0:
+                        entropy += -((u_per_day_mat.loc[row, c]/sum_row) * math.log((u_per_day_mat.loc[row, c]/sum_row), 2))
+                except Exception as e:
+                    print("exep "+str(e))
+            
+            assert entropy>=0, "entropy < 0: {}".format(entropy)
+            assert entropy <= 1, "entropy > 1: {}".format(entropy)
             all_entropies  += entropy
         
         # returning the entropy of the matrix
@@ -117,14 +127,14 @@ class Chromosome():
         for (_,_,_,u) in self.cols:
             all_units += u
 
-        basic_fitness = scheduled/(len(self.classes)*all_units)
-          
-        if basic_fitness == 1 or 10:
-            advanced_fitness = 1
+        fitness = scheduled/(len(self.classes)*all_units)
+        
+        # use entrepy to update fitness
+        if fitness == 1 or 10:
             l = len(self.classes)
             for clss in self.classes:
-                advanced_fitness -= self.get_entropy(clss)/l
-            return advanced_fitness
+                fitness -= self.get_entropy(clss)/l
+            return fitness
 
         return basic_fitness
 
