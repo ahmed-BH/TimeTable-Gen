@@ -4,6 +4,15 @@ import core.settings as settings
 import random
 
 class GeneticAlgorithm:
+    @staticmethod
+    def select_tournament(pop):
+        tournament_pop = Population(0)
+        i = 0
+        while i < settings.TOURNAMENT_SELECTION_SIZE :
+            tournament_pop.get_chromosomes().append(pop.get_chromosomes()[random.randrange(0,settings.POPULATION_SIZE)])
+            i += 1
+        tournament_pop.get_chromosomes().sort(key=lambda x: x.get_fitness(), reverse=True)
+        return tournament_pop.get_chromosomes()[0]
 
     @staticmethod
     def select_Wheel(pop):
@@ -83,8 +92,10 @@ class GeneticAlgorithm:
         i = 0
         while new_pop.get_chromosomes().__len__() < settings.POPULATION_SIZE:
             print("iteration : ", i)
-            parent1 = GeneticAlgorithm.select_Wheel(pop)
-            parent2 = GeneticAlgorithm.select_Wheel(pop)
+            #parent1 = GeneticAlgorithm.select_Wheel(pop)
+            #parent2 = GeneticAlgorithm.select_Wheel(pop)
+            parent1 = GeneticAlgorithm.select_tournament(pop)
+            parent2 = GeneticAlgorithm.select_tournament(pop)
 
 
             child1, child2 = GeneticAlgorithm.crossover_chromosomes(parent1, parent2)
