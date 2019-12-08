@@ -137,9 +137,10 @@ class Chromosome():
         fitness = scheduled/(len(self.classes)*all_units)
         
         # use entrepy to update fitness
+        # the importance of entropy is 20% of fitness
         LEN = len(self.classes)
         for clss in self.classes:
-            fitness -= self.get_entropy(clss)/LEN
+            fitness -= (self.get_entropy(clss)/LEN)*0.2
         
         return fitness
 
