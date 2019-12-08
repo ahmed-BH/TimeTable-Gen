@@ -32,7 +32,10 @@ class Chromosome():
     
     def get_nb_genes(self):
         return len(self.cols)
-        
+    
+    def init_genes(self):
+        self.genes.iloc[:,:] = 0
+
     def fill_genes(self):
         # filling genes according to the rules...
         for working_column in self.chromosome:
@@ -85,14 +88,14 @@ class Chromosome():
             sum_of_1 = 0
             for hour in self.hours:
                 for row in u_per_day_mat.index:
-                    (course,_,_,_) = row
+                    (_,_,_,units) = row
                     if self.genes.loc[(class_name, day, hour), row] == 1:
                         u_per_day_mat.loc[row, day] += 1
         
         # calculation the entropy
         all_entropies = 0
         for row in u_per_day_mat.index:
-            (course,_,_,units) = row
+            (_,_,_,units) = row
             # no need to calculate entropy for one unit course
             # we know it's 0 
             if units == 1:
@@ -105,13 +108,17 @@ class Chromosome():
                     if u_per_day_mat.loc[row, c] != 0:
                         entropy += -((u_per_day_mat.loc[row, c]/sum_row) * math.log((u_per_day_mat.loc[row, c]/sum_row), 2))
                 except Exception as e:
-                    print("exep "+str(e))
+                    if __debug__:
+                        print("Entropy exception: "+str(e))
+                    else:
+                        pass
             
-            assert entropy>=0, "entropy < 0: {}".format(entropy)
-            assert entropy <= 1, "entropy > 1: {}".format(entropy)
+            if __debug__:
+                assert entropy>=0, "entropy < 0: {} \n{}".format(entropy,u_per_day_mat.loc[row,:])
+                assert entropy <= 1, "entropy > 1: {} \n{}".format(entropy,u_per_day_mat.loc[row,:])
+            
             all_entropies  += entropy
         
-        # returning the entropy of the matrix
         return all_entropies/len(u_per_day_mat.index)
 
     def get_fitness(self):
@@ -130,13 +137,11 @@ class Chromosome():
         fitness = scheduled/(len(self.classes)*all_units)
         
         # use entrepy to update fitness
-        if fitness == 1 or 10:
-            l = len(self.classes)
-            for clss in self.classes:
-                fitness -= self.get_entropy(clss)/l
-            return fitness
-
-        return basic_fitness
+        LEN = len(self.classes)
+        for clss in self.classes:
+            fitness -= self.get_entropy(clss)/LEN
+        
+        return fitness
 
     def get_time_table(self, class_name):
         cols = self.days
