@@ -15,23 +15,28 @@ class Chromosome():
         self.hours    = data["hours"] 
         self.cols     = data["course_mapping"] 
         
+        # -- constants to reduce len() times --
+        self.LEN_CLASSES = len(self.classes)
+        self.LEN_COLS    = len(self.cols)
+        # -------------------------------------
+
         # generate row_indexes for our dataframe, its purpose is for debuging and verifications
         index_rows = list(itertools.product(self.classes, self.days, self.hours))        
         
         # chromosome is a list that determines the order we fill self.genes(our dataframe)
-        self.chromosome = [i for i in range(len(self.cols))]
+        self.chromosome = [i for i in range(self.LEN_COLS)]
         random.shuffle(self.chromosome)
         
         # genes is a dataframe that contains timetable for all classes
-        shape = (len(self.classes)*len(self.days)*len(self.hours), len(self.cols))
+        shape = (self.LEN_CLASSES*len(self.days)*len(self.hours), self.LEN_COLS)
         self.genes = pd.DataFrame(np.zeros(shape),index=pd.MultiIndex.from_tuples(index_rows), columns=pd.MultiIndex.from_tuples(self.cols), dtype = np.int8)
-
+        self.genes.sort_index(inplace=True)
 
     def get_chromosome(self):
         return self.chromosome
     
     def get_nb_genes(self):
-        return len(self.cols)
+        return self.LEN_COLS
     
     def init_genes(self):
         self.genes.iloc[:,:] = 0
@@ -81,7 +86,7 @@ class Chromosome():
     def get_entropy(self, class_name):
         # if all units of a course is sheduled in the same day then return 1
         # else return 0
-        u_per_day_mat = pd.DataFrame(np.zeros((len(self.cols), len(self.days)), dtype=np.uint8),index=self.genes.columns, columns=self.days)
+        u_per_day_mat = pd.DataFrame(np.zeros((self.LEN_COLS, len(self.days)), dtype=np.uint8),index=self.genes.columns, columns=self.days)
 
         # filling the vector
         for day in self.days:
@@ -134,13 +139,12 @@ class Chromosome():
         for (_,_,_,u) in self.cols:
             all_units += u
 
-        fitness = scheduled/(len(self.classes)*all_units)
+        fitness = scheduled/(self.LEN_CLASSES*all_units)
         
         # use entrepy to update fitness
         # the importance of entropy is 20% of fitness
-        LEN = len(self.classes)
         for clss in self.classes:
-            fitness -= (self.get_entropy(clss)/LEN)*0.2
+            fitness -= (self.get_entropy(clss)/self.LEN_CLASSES)*0.2
         
         return fitness
 

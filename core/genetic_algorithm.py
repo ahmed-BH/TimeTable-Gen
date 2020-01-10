@@ -1,6 +1,8 @@
-from   core.chromosome import Chromosome
-from   core.population import Population
-import core.settings as settings
+from   core.chromosome     import Chromosome
+from   core.population     import Population
+from   concurrent.futures  import ThreadPoolExecutor
+from   timeit              import default_timer
+import core.settings       as     settings
 import random
 
 class GeneticAlgorithm:
@@ -31,7 +33,7 @@ class GeneticAlgorithm:
         return pop.get_chromosomes()[i]
 
     @staticmethod
-    def crossover_chromosomes(parent1, parent2):
+    def crossover_chromosomes(parent1, parent2):   
         if random.random() < settings.CROSSING_RATE: 
             child1 = Chromosome(raw_data=settings.RAW_DATA)
             child2 = Chromosome(raw_data=settings.RAW_DATA)
@@ -45,10 +47,6 @@ class GeneticAlgorithm:
             child_2a = parent2.get_chromosome()[crossover_index:]
             child_2b = [i for i in parent1.get_chromosome() if i not in child_2a]
             child2.chromosome = child_2a + child_2b
-
-            # correct chromosome after crossover
-            #child1.correct_chromosome()
-            #child2.correct_chromosome()
             
             print("\nMaking a cross")
             print("Parent1: ",parent1.get_chromosome())
@@ -58,6 +56,7 @@ class GeneticAlgorithm:
 
             child1.fill_genes()
             child2.fill_genes()
+
             return child1, child2
         else:
             print("Couldn't make a cross")
@@ -85,6 +84,8 @@ class GeneticAlgorithm:
     '''Population evolution Cross Over --> Mutation'''
     @staticmethod
     def evolve(pop):
+        start   = default_timer()
+        
         new_pop = Population(0)
         '''Keep The Fittest Chromosomes'''
         for i in range(settings.NUMBER_OF_ELITE_CHROMOSOMES):
@@ -99,9 +100,11 @@ class GeneticAlgorithm:
             parent1 = GeneticAlgorithm.select_tournament(pop)
             parent2 = GeneticAlgorithm.select_tournament(pop)
 
-
             child1, child2 = GeneticAlgorithm.crossover_chromosomes(parent1, parent2)
-
+            
+            # with ThreadPoolExecutor() as executor:
+            #     future         = executor.submit(GeneticAlgorithm.crossover_chromosomes,parent1, parent2)
+            #     child1, child2 = future.result()
 
             GeneticAlgorithm.mutate_chromosome(child1)
             GeneticAlgorithm.mutate_chromosome(child2)
@@ -114,5 +117,7 @@ class GeneticAlgorithm:
                 new_pop.get_chromosomes().append(child2)
             i+=1
 
-        new_pop.get_chromosomes().sort(key=lambda x: x.get_fitness(), reverse=True)   
+        new_pop.get_chromosomes().sort(key=lambda x: x.get_fitness(), reverse=True)
+        print("=> produced generation in: {} seconds \n".format(default_timer()-start))
+        
         return new_pop
