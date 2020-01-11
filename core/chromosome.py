@@ -21,17 +21,14 @@ class Chromosome():
         self.LEN_DAYS    = len(self.days)
         self.LEN_HOURS   = len(self.hours)
         self.LEN_COLS    = len(self.cols)
+        self.LEN_ROWS    = self.LEN_CLASSES * self.LEN_DAYS * self.LEN_HOURS 
         # -------------------------------------
-
-        # generate row_indexes for our dataframe, its purpose is for debuging and verifications
-        index_rows    = list(itertools.product(self.classes, self.days, self.hours)) 
-        self.LEN_ROWS = len(index_rows)       
-        
+             
         # chromosome is a list that determines the order we fill self.genes(our dataframe)
         self.chromosome = [i for i in range(self.LEN_COLS)]
         random.shuffle(self.chromosome)
         
-        # genes is a dataframe that contains timetable for all classes
+        # genes is a dataframe that contains a timetable for all classes
         shape = (self.LEN_CLASSES * self.LEN_DAYS * self.LEN_HOURS, self.LEN_COLS)
         self.genes = pd.DataFrame(np.zeros(shape), dtype = np.int8)
         self.genes.sort_index(inplace=True)
@@ -48,7 +45,7 @@ class Chromosome():
     def fill_genes(self):
         # filling genes according to the rules...
         for working_column in self.chromosome:
-            (course, type_room, lecturer, units) = self.cols[working_column]
+            (_, _, _, units) = self.cols[working_column]
 
             # rule 1: 
             #       * certain course respectively should be scheduled in class name i'th 
@@ -56,9 +53,10 @@ class Chromosome():
             #       * Others consecutive cells in the same day, as many as unit course 
             #         of that column, is also assigned 1
             for clss in range(self.LEN_CLASSES):
+                start                        = clss * self.LEN_DAYS * self.LEN_HOURS
+                end                          = (clss+1) * self.LEN_DAYS * self.LEN_HOURS - 1
                 for unit in range(units):
-                    #(_, random_day, random_hour) = random.randint(0, self.LEN_ROWS)
-                    RAND_ROW                     = random.randint(0, self.LEN_ROWS - 1)
+                    RAND_ROW                 = random.randint(start, end)
                     if self.genes.iloc[RAND_ROW, working_column] != -1:
                         self.genes.iloc[RAND_ROW, working_column] = 1
                         
@@ -69,26 +67,14 @@ class Chromosome():
                         for clss2 in range(self.LEN_CLASSES):
                             if clss != clss2:
                                 self.genes.iloc[BASE, working_column] = -1
-                            BASE += clss2 * self.LEN_COLS * self.LEN_HOURS
+                            BASE += self.LEN_DAYS * self.LEN_HOURS
 
-            # rule 3: For each row, there is only maximum a cell that is equal to 1.The others must be -1 or 0.
-            (nb_rows, nb_cols) = self.genes.shape
-            found_one          = False
-            for i in range(nb_rows):
-                found_one     = False
-                not_to_change = -1
-                for j in self.chromosome:
-                    if self.genes.iloc[i,j] == 1 and found_one == False:
-                        found_one     = True
-                        not_to_change = j
-                        continue
-                    elif found_one == True:
-                        break
-                # correction phase..
-                if found_one == True:
-                    for k in self.chromosome:
-                        if k != not_to_change:
-                            self.genes.iloc[i,k] = -1
+                        # rule 3: 
+                        #    For each row, there is only maximum a cell that is equal to 1.
+                        #    The others must be -1 or 0.
+                        for col in range(self.LEN_COLS):
+                            if col != working_column:
+                                self.genes.iloc[RAND_ROW, col] = -1
 
     def get_entropy(self, class_name):
         # if all units of a course is sheduled in the same day then return 1
