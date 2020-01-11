@@ -87,13 +87,15 @@ class GeneticAlgorithm:
         start   = default_timer()
         
         new_pop = Population(0)
+        LEN_POP = 0
         '''Keep The Fittest Chromosomes'''
         for i in range(settings.NUMBER_OF_ELITE_CHROMOSOMES):
             new_pop.get_chromosomes().append(pop.get_chromosomes()[i])
+            LEN_POP += 1
 
         print("\nCrossover and Mutation Trace:")
         i = 0
-        while new_pop.get_chromosomes().__len__() < settings.POPULATION_SIZE:
+        while LEN_POP < settings.POPULATION_SIZE:
             print("iteration : ", i)
             #parent1 = GeneticAlgorithm.select_Wheel(pop)
             #parent2 = GeneticAlgorithm.select_Wheel(pop)
@@ -111,10 +113,16 @@ class GeneticAlgorithm:
 
 
             new_pop.get_chromosomes().append(child1)
+            LEN_POP += 1
 
             # make sure to not depass the population size if we keep the elite
-            if len(new_pop.get_chromosomes()) < settings.POPULATION_SIZE:
+            if LEN_POP < settings.POPULATION_SIZE:
                 new_pop.get_chromosomes().append(child2)
+                LEN_POP += 1
+
+            # make sure to not depass the population size if we keep the elite
+            # if len(new_pop.get_chromosomes()) < settings.POPULATION_SIZE:
+            #     new_pop.get_chromosomes().append(child2)
             i+=1
 
         new_pop.get_chromosomes().sort(key=lambda x: x.get_fitness(), reverse=True)
