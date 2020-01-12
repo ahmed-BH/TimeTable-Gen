@@ -1,7 +1,5 @@
 from   core.chromosome     import Chromosome
 from   core.population     import Population
-from   concurrent.futures  import ThreadPoolExecutor
-from   timeit              import default_timer
 import core.settings       as     settings
 import random
 
@@ -84,7 +82,6 @@ class GeneticAlgorithm:
     '''Population evolution Cross Over --> Mutation'''
     @staticmethod
     def evolve(pop):
-        start   = default_timer()
         
         new_pop = Population(0)
         LEN_POP = 0
@@ -104,13 +101,8 @@ class GeneticAlgorithm:
 
             child1, child2 = GeneticAlgorithm.crossover_chromosomes(parent1, parent2)
             
-            # with ThreadPoolExecutor() as executor:
-            #     future         = executor.submit(GeneticAlgorithm.crossover_chromosomes,parent1, parent2)
-            #     child1, child2 = future.result()
-
             GeneticAlgorithm.mutate_chromosome(child1)
             GeneticAlgorithm.mutate_chromosome(child2)
-
 
             new_pop.get_chromosomes().append(child1)
             LEN_POP += 1
@@ -126,6 +118,5 @@ class GeneticAlgorithm:
             i+=1
 
         new_pop.get_chromosomes().sort(key=lambda x: x.get_fitness(), reverse=True)
-        print("=> produced generation in: {} seconds \n".format(default_timer()-start))
         
         return new_pop

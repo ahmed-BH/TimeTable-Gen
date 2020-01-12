@@ -29,9 +29,8 @@ class Chromosome():
         random.shuffle(self.chromosome)
         
         # genes is a dataframe that contains a timetable for all classes
-        shape = (self.LEN_CLASSES * self.LEN_DAYS * self.LEN_HOURS, self.LEN_COLS)
-        self.genes = pd.DataFrame(np.zeros(shape), dtype = np.int8)
-        self.genes.sort_index(inplace=True)
+        shape      = (self.LEN_CLASSES * self.LEN_DAYS * self.LEN_HOURS, self.LEN_COLS)
+        self.genes = np.zeros(shape, dtype = np.int8)
 
     def get_chromosome(self):
         return self.chromosome
@@ -40,7 +39,7 @@ class Chromosome():
         return self.LEN_COLS
     
     def init_genes(self):
-        self.genes.iloc[:,:] = 0
+        self.genes[:,:] = 0
 
     def fill_genes(self):
         # filling genes according to the rules...
@@ -57,8 +56,8 @@ class Chromosome():
                 end                          = (clss+1) * self.LEN_DAYS * self.LEN_HOURS - 1
                 for unit in range(units):
                     RAND_ROW                 = random.randint(start, end)
-                    if self.genes.iloc[RAND_ROW, working_column] != -1:
-                        self.genes.iloc[RAND_ROW, working_column] = 1
+                    if self.genes[RAND_ROW, working_column] != -1:
+                        self.genes[RAND_ROW, working_column] = 1
                         
                         # rule 5: 
                         #       * If there is a cell in a column of a row (cx, di, hj) is equal to 1 
@@ -66,7 +65,7 @@ class Chromosome():
                         BASE  = RAND_ROW % (self.LEN_DAYS * self.LEN_HOURS)
                         for clss2 in range(self.LEN_CLASSES):
                             if clss != clss2:
-                                self.genes.iloc[BASE, working_column] = -1
+                                self.genes[BASE, working_column] = -1
                             BASE += self.LEN_DAYS * self.LEN_HOURS
 
                         # rule 3: 
@@ -74,12 +73,12 @@ class Chromosome():
                         #    The others must be -1 or 0.
                         for col in range(self.LEN_COLS):
                             if col != working_column:
-                                self.genes.iloc[RAND_ROW, col] = -1
+                                self.genes[RAND_ROW, col] = -1
 
     def get_entropy(self, class_name):
         # if all units of a course is sheduled in the same day then return 1
         # else return 0
-        u_per_day_mat = pd.DataFrame(np.zeros((self.LEN_COLS, len(self.days)), dtype=np.uint8))
+        u_per_day_mat = np.zeros((self.LEN_COLS, self.LEN_DAYS), dtype=np.uint8)
 
         # filling the vector
         class_name = self.classes.index(class_name)
@@ -88,17 +87,17 @@ class Chromosome():
             for hour in range(self.LEN_HOURS):
                 for row in range(u_per_day_mat.shape[0]):
                     indx = hour + day*self.LEN_HOURS + class_name * self.LEN_DAYS * self.LEN_HOURS
-                    if self.genes.iloc[indx, row] == 1:
-                        u_per_day_mat.iloc[row, day] += 1
+                    if self.genes[indx, row] == 1:
+                        u_per_day_mat[row, day] += 1
         
         # calculating the entropy
         all_entropies = 0
         for row in range(u_per_day_mat.shape[0]):
-            entropy = scipy_entropy(u_per_day_mat.iloc[row,:], base=2)
+            entropy = scipy_entropy(u_per_day_mat[row,:], base=2)
             if entropy == True:
                 all_entropies  += entropy
         
-        return all_entropies/len(u_per_day_mat.index)
+        return all_entropies/self.LEN_COLS
 
     def get_fitness(self):
         # the closet to 1, the better
@@ -106,7 +105,7 @@ class Chromosome():
         (nb_rows, nb_cols) = self.genes.shape
         for i in range(nb_rows):
             for j in range(nb_cols):
-                if self.genes.iloc[i,j] == 1:
+                if self.genes[i,j] == 1:
                     scheduled+= 1
         
         all_units = 0
@@ -135,7 +134,7 @@ class Chromosome():
             for hour in range(self.LEN_HOURS):
                 for col in range(self.LEN_COLS):
                     indx = hour + day * self.LEN_HOURS + class_name * self.LEN_DAYS * self.LEN_HOURS
-                    if self.genes.iloc[indx, col] == 1:
+                    if self.genes[indx, col] == 1:
                         time_table.iloc[hour, day] = self.cols[col]
         return time_table
 
