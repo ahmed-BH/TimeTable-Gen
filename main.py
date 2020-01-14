@@ -22,6 +22,3 @@ if __name__ == "__main__":
         print(population[0].get_time_table(c))
 
         print("---------------------------------------------------\n")
-    
-    for i in population.get_chromosomes():
-        print("fitness: {}".format(i.get_fitness()))

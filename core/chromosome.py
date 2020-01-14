@@ -54,9 +54,9 @@ class Chromosome():
             for clss in range(self.LEN_CLASSES):
                 start                        = clss * self.LEN_DAYS * self.LEN_HOURS
                 end                          = (clss+1) * self.LEN_DAYS * self.LEN_HOURS - 1
-                for unit in range(units):
+                for _ in range(units):
                     RAND_ROW                 = random.randint(start, end)
-                    if self.genes[RAND_ROW, working_column] != -1:
+                    if self.genes[RAND_ROW, working_column] == 0:
                         self.genes[RAND_ROW, working_column] = 1
                         
                         # rule 5: 
@@ -124,11 +124,6 @@ class Chromosome():
     def get_time_table(self, class_name):
         time_table = pd.DataFrame(index=self.hours, columns=self.days)
 
-        # for (row_class, row_day, row_hour) in self.genes.index:
-        #     for (col_course, col_room, col_lecturer,_) in self.genes.columns:
-        #         if row_class == class_name and self.genes.loc[(row_class, row_day, row_hour), (col_course, col_room, col_lecturer,_)] == 1:
-        #             time_table.loc[row_hour, row_day] = (col_course, col_lecturer, col_room)
-        
         class_name = self.classes.index(class_name)
         for day in range(self.LEN_DAYS):
             for hour in range(self.LEN_HOURS):

@@ -1,14 +1,17 @@
 from   core.chromosome     import Chromosome
 from   core.population     import Population
 import core.settings       as     settings
-import random
+import random, copy
 
 class GeneticAlgorithm:
     @staticmethod
     def select_tournament(pop):
         tournament_pop = random.sample(pop.get_chromosomes(), settings.TOURNAMENT_SELECTION_SIZE)
         tournament_pop.sort(key=lambda x: x.get_fitness(), reverse=True)
-        return tournament_pop[0]
+        
+        # return a copy of the parent, otherwise, when the elite
+        # is one of the parents, it can be changed with a mutation.
+        return copy.deepcopy(tournament_pop[0])
 
     @staticmethod
     def select_Wheel(pop):
@@ -86,14 +89,10 @@ class GeneticAlgorithm:
             new_pop.append(pop[i])
             LEN_POP += 1
 
-        x = new_pop[0]
-        print("elite: ", new_pop[0].get_fitness(), end="")
         while LEN_POP < settings.POPULATION_SIZE:
-            #parent1 = GeneticAlgorithm.select_Wheel(pop)
-            #parent2 = GeneticAlgorithm.select_Wheel(pop)
             parent1 = GeneticAlgorithm.select_tournament(pop)
             parent2 = GeneticAlgorithm.select_tournament(pop)
-
+            
             child1, child2 = GeneticAlgorithm.crossover_chromosomes(parent1, parent2)
             
             GeneticAlgorithm.mutate_chromosome(child1)
@@ -112,9 +111,4 @@ class GeneticAlgorithm:
             #     new_pop.get_chromosomes().append(child2)
 
         new_pop.sort(reverse=True)
-        print(" | after sort: ", new_pop[0].get_fitness(), end="")
-        print(" | elite exists: ", new_pop.get_chromosomes().index(x), end="")
-        print(" | ->: ", new_pop[new_pop.get_chromosomes().index(x)].get_fitness(), end="")
-        print(" -- ", x.get_fitness())
-
         return new_pop
