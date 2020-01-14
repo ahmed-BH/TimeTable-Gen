@@ -6,13 +6,9 @@ import random
 class GeneticAlgorithm:
     @staticmethod
     def select_tournament(pop):
-        tournament_pop = Population(0)
-        i = 0
-        while i < settings.TOURNAMENT_SELECTION_SIZE :
-            tournament_pop.get_chromosomes().append(pop.get_chromosomes()[random.randrange(0,settings.POPULATION_SIZE)])
-            i += 1
-        tournament_pop.get_chromosomes().sort(key=lambda x: x.get_fitness(), reverse=True)
-        return tournament_pop.get_chromosomes()[0]
+        tournament_pop = random.sample(pop.get_chromosomes(), settings.TOURNAMENT_SELECTION_SIZE)
+        tournament_pop.sort(key=lambda x: x.get_fitness(), reverse=True)
+        return tournament_pop[0]
 
     @staticmethod
     def select_Wheel(pop):
@@ -26,9 +22,9 @@ class GeneticAlgorithm:
         i = -1
         while partialSum < randomShot and i < settings.POPULATION_SIZE-1 :
             i += 1
-            partialSum += pop.get_chromosomes()[i].get_fitness()
+            partialSum += pop[i].get_fitness()
 
-        return pop.get_chromosomes()[i]
+        return pop[i]
 
     @staticmethod
     def crossover_chromosomes(parent1, parent2):   
@@ -46,25 +42,25 @@ class GeneticAlgorithm:
             child_2b = [i for i in parent1.get_chromosome() if i not in child_2a]
             child2.chromosome = child_2a + child_2b
             
-            print("\nMaking a cross")
-            print("Parent1: ",parent1.get_chromosome())
-            print("Parent2: ",parent2.get_chromosome())
-            print("Child1 : ", child1.get_chromosome())
-            print("Child2 : ", child2.get_chromosome())
+            # print("\nMaking a cross")
+            # print("Parent1: ",parent1.get_chromosome())
+            # print("Parent2: ",parent2.get_chromosome())
+            # print("Child1 : ", child1.get_chromosome())
+            # print("Child2 : ", child2.get_chromosome())
 
             child1.fill_genes()
             child2.fill_genes()
 
             return child1, child2
         else:
-            print("Couldn't make a cross")
+            # print("Couldn't make a cross")
             return parent1, parent2
 
     @staticmethod
     def mutate_chromosome(chromosome):
         if random.random() < settings.MUTATION_RATE:
-            print("\nMaking a mutation")
-            print("From: ",chromosome.get_chromosome())
+            # print("\nMaking a mutation")
+            # print("From: ",chromosome.get_chromosome())
 
             
             random_position1 = random.randrange(0,chromosome.get_nb_genes())
@@ -76,7 +72,7 @@ class GeneticAlgorithm:
 
             chromosome.init_genes()
             chromosome.fill_genes()
-            print("To:   ",chromosome.get_chromosome())
+            # print("To:   ",chromosome.get_chromosome())
     
 
     '''Population evolution Cross Over --> Mutation'''
@@ -87,13 +83,12 @@ class GeneticAlgorithm:
         LEN_POP = 0
         '''Keep The Fittest Chromosomes'''
         for i in range(settings.NUMBER_OF_ELITE_CHROMOSOMES):
-            new_pop.get_chromosomes().append(pop.get_chromosomes()[i])
+            new_pop.append(pop[i])
             LEN_POP += 1
 
-        print("\nCrossover and Mutation Trace:")
-        i = 0
+        x = new_pop[0]
+        print("elite: ", new_pop[0].get_fitness(), end="")
         while LEN_POP < settings.POPULATION_SIZE:
-            print("iteration : ", i)
             #parent1 = GeneticAlgorithm.select_Wheel(pop)
             #parent2 = GeneticAlgorithm.select_Wheel(pop)
             parent1 = GeneticAlgorithm.select_tournament(pop)
@@ -104,19 +99,22 @@ class GeneticAlgorithm:
             GeneticAlgorithm.mutate_chromosome(child1)
             GeneticAlgorithm.mutate_chromosome(child2)
 
-            new_pop.get_chromosomes().append(child1)
+            new_pop.append(child1)
             LEN_POP += 1
 
             # make sure to not depass the population size if we keep the elite
             if LEN_POP < settings.POPULATION_SIZE:
-                new_pop.get_chromosomes().append(child2)
+                new_pop.append(child2)
                 LEN_POP += 1
 
             # make sure to not depass the population size if we keep the elite
             # if len(new_pop.get_chromosomes()) < settings.POPULATION_SIZE:
             #     new_pop.get_chromosomes().append(child2)
-            i+=1
 
-        new_pop.get_chromosomes().sort(key=lambda x: x.get_fitness(), reverse=True)
-        
+        new_pop.sort(reverse=True)
+        print(" | after sort: ", new_pop[0].get_fitness(), end="")
+        print(" | elite exists: ", new_pop.get_chromosomes().index(x), end="")
+        print(" | ->: ", new_pop[new_pop.get_chromosomes().index(x)].get_fitness(), end="")
+        print(" -- ", x.get_fitness())
+
         return new_pop

@@ -9,17 +9,19 @@ if __name__ == "__main__":
     population = Population(settings.POPULATION_SIZE)
     population.print_population(generation_number)
 
-    while population.get_chromosomes()[0].get_fitness() < MAX_FITNESS and generation_number < settings.MAX_GENERATION_NUMBER :
+    while population[0].get_fitness() < MAX_FITNESS and generation_number < settings.MAX_GENERATION_NUMBER :
         generation_number += 1
         population = GeneticAlgorithm.evolve(population)
         population.print_population(generation_number)
     
-    print(population.get_chromosomes()[0].genes)
+    print(population[0].genes)
 
     print("\n---------- all timetables ------------")
-    print("class : c1")
-    print(population.get_chromosomes()[0].get_time_table("c1"))
+    for c in settings.RAW_DATA["classes"]:
+        print("class : {}".format(c))
+        print(population[0].get_time_table(c))
 
-    print("---------------------------------------------------")
-    print("class : c2")
-    print(population.get_chromosomes()[0].get_time_table("c2"))
+        print("---------------------------------------------------\n")
+    
+    for i in population.get_chromosomes():
+        print("fitness: {}".format(i.get_fitness()))
