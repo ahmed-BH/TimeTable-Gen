@@ -18,6 +18,16 @@ class Population:
     def get_chromosomes(self):
         return self.chromosomes
 
+    def sort(self, **kargs):
+        reverse = kargs.get("reverse", False)
+        self.chromosomes.sort(key=lambda x: x.get_fitness(), reverse=reverse)
+
+    def __getitem__(self, indx):
+        return self.chromosomes[indx]
+
+    def append(self, chromosome):
+        self.chromosomes.append(chromosome)
+            
     def print_population(self, gen_number):
         print("\n-----------------------Generation Summary---------------------------")
         print("--------------------------------------------------------------------")

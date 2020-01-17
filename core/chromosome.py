@@ -1,5 +1,7 @@
 import random
+import math
 import itertools
+from scipy.stats import entropy as scipy_entropy
 import numpy         as np 
 import pandas        as pd
 
@@ -14,65 +16,88 @@ class Chromosome():
         self.hours    = data["hours"] 
         self.cols     = data["course_mapping"] 
         
-        # generate row_indexes for our dataframe, its purpose is for debuging and verifications
-        index_rows = list(itertools.product(self.classes, self.days, self.hours))        
-        
+        # -- constants to reduce len() times --
+        self.LEN_CLASSES = len(self.classes)
+        self.LEN_DAYS    = len(self.days)
+        self.LEN_HOURS   = len(self.hours)
+        self.LEN_COLS    = len(self.cols)
+        self.LEN_ROWS    = self.LEN_CLASSES * self.LEN_DAYS * self.LEN_HOURS 
+        # -------------------------------------
+             
         # chromosome is a list that determines the order we fill self.genes(our dataframe)
-        self.chromosome = [i for i in range(len(self.cols))]
+        self.chromosome = [i for i in range(self.LEN_COLS)]
         random.shuffle(self.chromosome)
         
-        # genes is a dataframe that contains timetable for all classes
-        shape = (len(self.classes)*len(self.days)*len(self.hours), len(self.cols))
-        self.genes = pd.DataFrame(np.zeros(shape),index=pd.MultiIndex.from_tuples(index_rows), columns=pd.MultiIndex.from_tuples(self.cols), dtype = np.int8)
-
+        # genes is a dataframe that contains a timetable for all classes
+        shape      = (self.LEN_CLASSES * self.LEN_DAYS * self.LEN_HOURS, self.LEN_COLS)
+        self.genes = np.zeros(shape, dtype = np.int8)
 
     def get_chromosome(self):
         return self.chromosome
     
     def get_nb_genes(self):
-        return len(self.cols)
-        
+        return self.LEN_COLS
+    
+    def init_genes(self):
+        self.genes[:,:] = 0
+
     def fill_genes(self):
         # filling genes according to the rules...
         for working_column in self.chromosome:
-            (course, type_room, lecturer, units) = self.cols[working_column]
+            (_, _, _, units) = self.cols[working_column]
 
             # rule 1: 
             #       * certain course respectively should be scheduled in class name i'th 
             #         then all rows cj ≠ i in that column should not be filled by 1
             #       * Others consecutive cells in the same day, as many as unit course 
             #         of that column, is also assigned 1
-            for clss in self.classes:
-                for unit in range(units):
-                    (_, random_day, random_hour) = random.choice(self.genes.index)
-                    if self.genes.loc[(clss, random_day, random_hour), (course, type_room, lecturer, units)] != -1:
-                        self.genes.loc[(clss, random_day, random_hour), (course, type_room, lecturer, units)] = 1
+            for clss in range(self.LEN_CLASSES):
+                start                        = clss * self.LEN_DAYS * self.LEN_HOURS
+                end                          = (clss+1) * self.LEN_DAYS * self.LEN_HOURS - 1
+                for _ in range(units):
+                    RAND_ROW                 = random.randint(start, end)
+                    if self.genes[RAND_ROW, working_column] == 0:
+                        self.genes[RAND_ROW, working_column] = 1
                         
                         # rule 5: 
                         #       * If there is a cell in a column of a row (cx, di, hj) is equal to 1 
                         #         then for all row (cy, di, hj) have to be set -1 for cx ≠ cy at that column.
-                        for clss2 in self.classes:
+                        BASE  = RAND_ROW % (self.LEN_DAYS * self.LEN_HOURS)
+                        for clss2 in range(self.LEN_CLASSES):
                             if clss != clss2:
-                                self.genes.loc[(clss2, random_day, random_hour), (course, type_room, lecturer, units)] = -1
+                                self.genes[BASE, working_column] = -1
+                            BASE += self.LEN_DAYS * self.LEN_HOURS
 
-            # rule 3: For each row, there is only maximum a cell that is equal to 1.The others must be -1 or 0.
-            (nb_rows, nb_cols) = self.genes.shape
-            found_one          = False
-            for i in range(nb_rows):
-                found_one     = False
-                not_to_change = -1
-                for j in self.chromosome:
-                    if self.genes.iloc[i,j] == 1 and found_one == False:
-                        found_one     = True
-                        not_to_change = j
-                        continue
-                    elif found_one == True:
-                        break
-                # correction phase..
-                if found_one == True:
-                    for k in self.chromosome:
-                        if k != not_to_change:
-                            self.genes.iloc[i,k] = -1
+                        # rule 3: 
+                        #    For each row, there is only maximum a cell that is equal to 1.
+                        #    The others must be -1 or 0.
+                        for col in range(self.LEN_COLS):
+                            if col != working_column:
+                                self.genes[RAND_ROW, col] = -1
+
+    def get_entropy(self, class_name):
+        # if all units of a course is sheduled in the same day then return 1
+        # else return 0
+        u_per_day_mat = np.zeros((self.LEN_COLS, self.LEN_DAYS), dtype=np.uint8)
+
+        # filling the vector
+        class_name = self.classes.index(class_name)
+        for day in range(self.LEN_DAYS):
+            sum_of_1 = 0
+            for hour in range(self.LEN_HOURS):
+                for row in range(u_per_day_mat.shape[0]):
+                    indx = hour + day*self.LEN_HOURS + class_name * self.LEN_DAYS * self.LEN_HOURS
+                    if self.genes[indx, row] == 1:
+                        u_per_day_mat[row, day] += 1
+        
+        # calculating the entropy
+        all_entropies = 0
+        for row in range(u_per_day_mat.shape[0]):
+            entropy = scipy_entropy(u_per_day_mat[row,:], base=2)
+            if entropy == True:
+                all_entropies  += entropy
+        
+        return all_entropies/self.LEN_COLS
 
     def get_fitness(self):
         # the closet to 1, the better
@@ -80,25 +105,32 @@ class Chromosome():
         (nb_rows, nb_cols) = self.genes.shape
         for i in range(nb_rows):
             for j in range(nb_cols):
-                if self.genes.iloc[i,j] == 1:
+                if self.genes[i,j] == 1:
                     scheduled+= 1
         
         all_units = 0
         for (_,_,_,u) in self.cols:
             all_units += u
 
-        return scheduled/(len(self.classes)*all_units)
+        fitness = scheduled/(self.LEN_CLASSES*all_units)
+        
+        # use entrepy to update fitness
+        # the importance of entropy is 20% of fitness
+        for clss in self.classes:
+            fitness -= (self.get_entropy(clss)/self.LEN_CLASSES)*0.2
+        
+        return fitness
 
     def get_time_table(self, class_name):
-        cols = self.days
-        rows = self.hours
-        time_table = pd.DataFrame(index=rows, columns=cols)
+        time_table = pd.DataFrame(index=self.hours, columns=self.days)
 
-        for (row_class, row_day, row_hour) in self.genes.index:
-            for (col_course, col_room, col_lecturer,_) in self.genes.columns:
-                if row_class == class_name and self.genes.loc[(row_class, row_day, row_hour), (col_course, col_room, col_lecturer,_)] == 1:
-                    time_table.loc[row_hour, row_day] = (col_course, col_lecturer, col_room)
-        
+        class_name = self.classes.index(class_name)
+        for day in range(self.LEN_DAYS):
+            for hour in range(self.LEN_HOURS):
+                for col in range(self.LEN_COLS):
+                    indx = hour + day * self.LEN_HOURS + class_name * self.LEN_DAYS * self.LEN_HOURS
+                    if self.genes[indx, col] == 1:
+                        time_table.iloc[hour, day] = self.cols[col]
         return time_table
 
         
