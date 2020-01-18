@@ -52,17 +52,24 @@ class Chromosome():
             #       * Others consecutive cells in the same day, as many as unit course 
             #         of that column, is also assigned 1
             for clss in range(self.LEN_CLASSES):
-                start                        = clss * self.LEN_DAYS * self.LEN_HOURS
-                end                          = (clss+1) * self.LEN_DAYS * self.LEN_HOURS - 1
-                for _ in range(units):
-                    RAND_ROW                 = random.randint(start, end)
-                    if self.genes[RAND_ROW, working_column] == 0:
-                        self.genes[RAND_ROW, working_column] = 1
+                start     = clss * self.LEN_DAYS * self.LEN_HOURS
+                end       = (clss+1) * self.LEN_DAYS * self.LEN_HOURS - 1
+                RAND_ROW  = random.randint(start, end)
+                RAND_DAY  = (RAND_ROW % (self.LEN_DAYS * self.LEN_HOURS)) // self.LEN_HOURS
+                
+                reserved_units = 0
+                for hour in range(self.LEN_HOURS):
+                    if reserved_units == units:
+                        break
+                    tmp_row = start + RAND_DAY * self.LEN_HOURS + hour
+                    if self.genes[tmp_row, working_column] == 0:
+                        self.genes[tmp_row, working_column] = 1
+                        reserved_units += 1
                         
                         # rule 5: 
                         #       * If there is a cell in a column of a row (cx, di, hj) is equal to 1 
                         #         then for all row (cy, di, hj) have to be set -1 for cx ≠ cy at that column.
-                        BASE  = RAND_ROW % (self.LEN_DAYS * self.LEN_HOURS)
+                        BASE  = tmp_row % (self.LEN_DAYS * self.LEN_HOURS)
                         for clss2 in range(self.LEN_CLASSES):
                             if clss != clss2:
                                 self.genes[BASE, working_column] = -1
@@ -73,7 +80,7 @@ class Chromosome():
                         #    The others must be -1 or 0.
                         for col in range(self.LEN_COLS):
                             if col != working_column:
-                                self.genes[RAND_ROW, col] = -1
+                                self.genes[tmp_row, col] = -1
 
     def get_entropy(self, class_name):
         # if all units of a course is sheduled in the same day then return 1
