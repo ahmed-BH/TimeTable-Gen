@@ -2,13 +2,15 @@
 classes:
   - c1
   - c2
+  - c3
 
 days:
   - d1
   - d2
   - d3
-  #- d4
-  #- d5
+  - d4
+  - d5
+  - d6
 
 hours:
   - h1
@@ -16,12 +18,29 @@ hours:
   - h3
   - h4
   - h5
+  - h6
 
 # <course, room_type, lecturer, units>
 course_mapping: 
-  - ["eng","A","l0",1]
-  - ["fr","A","l1",1]
+  - ["cloud","A","l5",2]
+  - ["sta","TP","l5",2]
+  - ["soa","TP","l5",1]
   - ["ia","A","l2",2]
+  - ["indx","A","l2",1]
+  - ["sma","TP","l5",1]
+  - ["bigData","TP","l5",1]
+  - ["entrep","TP","l5",1]
+  - ["fr","A","l1",1]
   - ["ga","A","l3",1]
-  - ["idx","A","l4",1]
+  - ["verif","A","l3",1]
+  - ["mc1","A","l0",2]
+  - ["mc","A","l3",2]
+  - ["eng","A","l4",1]
+  - ["tp_inx","A","l3",2]
   - ["tp_ga","TP","l5",2]
+  - ["mini_ga","A","l3",1]
+  - ["mini_ds","A","l3",1]
+  
+  
+  
+  
