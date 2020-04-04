@@ -15,8 +15,10 @@ class Chromosome():
         self.days     = data["days"] 
         self.hours    = data["hours"] 
         self.cols     = data["course_mapping"] 
+        self.rooms    = data["rooms"]
         
         # -- constants to reduce len() times --
+        self.LEN_ROOMS   = sum(self.rooms["number"])
         self.LEN_CLASSES = len(self.classes)
         self.LEN_DAYS    = len(self.days)
         self.LEN_HOURS   = len(self.hours)
@@ -27,10 +29,14 @@ class Chromosome():
         # chromosome is a list that determines the order we fill self.genes(our dataframe)
         self.chromosome = [i for i in range(self.LEN_COLS)]
         random.shuffle(self.chromosome)
+
+        # keep track of available rooms.
+        # 0: available, 1: not available at the given (day, time)
+        self.available_room = np.zeros((self.LEN_DAYS * self.LEN_HOURS, self.LEN_ROOMS), dtype = np.int8)
         
         # genes is a dataframe that contains a timetable for all classes
         shape      = (self.LEN_CLASSES * self.LEN_DAYS * self.LEN_HOURS, self.LEN_COLS)
-        self.genes = np.zeros(shape, dtype = np.int8)
+        self.genes = np.zeros(shape, dtype = np.int32)
 
     def get_chromosome(self):
         return self.chromosome
@@ -44,7 +50,7 @@ class Chromosome():
     def fill_genes(self):
         # filling genes according to the rules...
         for working_column in self.chromosome:
-            (_, _, _, units) = self.cols[working_column]
+            (_, room_type, _, units) = self.cols[working_column]
 
             # rule 1: 
             #       * certain course respectively should be scheduled in class name i'th 
@@ -62,8 +68,16 @@ class Chromosome():
                     if reserved_units == units:
                         break
                     tmp_row = start + RAND_DAY * self.LEN_HOURS + hour
-                    if self.genes[tmp_row, working_column] == 0:
-                        self.genes[tmp_row, working_column] = 1
+                    # choosing a random column in available_rooms np table
+                    tmp_i = self.rooms["type"].index(room_type)
+                    if tmp_i == -1: raise ValueError("rooms type does not exist")
+                    s   = sum(self.rooms["number"][0:tmp_i])
+                    e   = s + self.rooms["number"][tmp_i] - 1
+                    rand_room = random.randint(s, e)
+                    # -----------------------------------------------------
+                    if self.genes[tmp_row, working_column] == 0 and self.available_room[hour*RAND_DAY, rand_room] == 0:
+                        self.available_room[hour*RAND_DAY, rand_room] = 1
+                        self.genes[tmp_row, working_column] = rand_room + 1 # saving the room
                         reserved_units += 1
                         
                         # rule 5: 
@@ -94,7 +108,7 @@ class Chromosome():
             for hour in range(self.LEN_HOURS):
                 for row in range(u_per_day_mat.shape[0]):
                     indx = hour + day*self.LEN_HOURS + class_name * self.LEN_DAYS * self.LEN_HOURS
-                    if self.genes[indx, row] == 1:
+                    if self.genes[indx, row] > 0:
                         u_per_day_mat[row, day] += 1
         
         # calculating the entropy
@@ -112,7 +126,7 @@ class Chromosome():
         (nb_rows, nb_cols) = self.genes.shape
         for i in range(nb_rows):
             for j in range(nb_cols):
-                if self.genes[i,j] == 1:
+                if self.genes[i,j] > 0:
                     scheduled+= 1
         
         all_units = 0
@@ -136,8 +150,14 @@ class Chromosome():
             for hour in range(self.LEN_HOURS):
                 for col in range(self.LEN_COLS):
                     indx = hour + day * self.LEN_HOURS + class_name * self.LEN_DAYS * self.LEN_HOURS
-                    if self.genes[indx, col] == 1:
-                        time_table.iloc[hour, day] = self.cols[col]
+                    if self.genes[indx, col] > 0:
+                        (subject, room_type, lecturer, _) = self.cols[col]
+                        # ---------- get right room number ----------
+                        i    = self.rooms["type"].index(room_type)
+                        diff = sum(self.rooms["number"][0:i])
+                        room_number = self.genes[indx, col] - 1 - diff
+                        # -------------------------------------------
+                        time_table.iloc[hour, day] = "{}, {}:{}".format(subject, room_type, room_number)
         return time_table
 
         
