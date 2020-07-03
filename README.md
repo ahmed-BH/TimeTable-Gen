@@ -1,6 +1,7 @@
 # TimeTable-Gen
 
-TimeTable-Gen uses Genetic Algorithms to generate timetables for different classes given courses, lecturers, rooms... At this time, the program does not provide the best solution, still, it can produce a working timetable.
+TimeTable-Gen uses Genetic Algorithms to generate timetables for different classes given courses, lecturers, rooms... 
+The resulting timetable is the fittest one through many generations that satistfy fixed rules (other rules for the 'best' timetable will be added)
 
 ### Prerequisites
 
@@ -31,7 +32,7 @@ Contributions are what make the open source community such an amazing place to b
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-Or just share an idea in [theGithub's project section](https://github.com/ahmed-BH/TimeTable-Gen/projects/1). I am using it to organize my ideas and to keep track of TODOs, issues...
+Or just share an idea in [the Github's project section](https://github.com/ahmed-BH/TimeTable-Gen/projects/1). I am using it to organize my ideas and to keep track of TODOs, issues...
 
 ## References
 
