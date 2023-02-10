@@ -1,4 +1,4 @@
-from ruamel_yaml import YAML
+from ruamel.yaml import YAML
 
 MAX_GENERATION_NUMBER       = 20
 POPULATION_SIZE             = 80

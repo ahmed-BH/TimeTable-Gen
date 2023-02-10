@@ -1,3 +1,4 @@
 numpy==1.22.0
-pandas==0.25.1
-ruamel-yaml==0.15.46
+pandas==1.5.3
+ruamel-yaml==0.17.21
+scipy==1.10.0
