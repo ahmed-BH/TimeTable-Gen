@@ -3,6 +3,15 @@
 TimeTable-Gen uses Genetic Algorithms to generate timetables for different classes given courses, lecturers, rooms... 
 The resulting timetable is the fittest one through many generations that satistfy fixed rules (other rules for the 'best' timetable will be added)
 
+## Running using docker
+
+```shell
+docker run ahbenmed/timetable_gen
+
+```
+
+## Running manually
+
 ### Prerequisites
 
 * [python3](https://www.python.org/) should be installed.
@@ -13,8 +22,8 @@ The resulting timetable is the fittest one through many generations that satistf
 pip install -r requirements.txt
 
 ```
+### Run
 
-### Running
 To test things, run:
 
 ```shell
